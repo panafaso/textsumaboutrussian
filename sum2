@@ -1,0 +1,43 @@
+Python 3.6.6 (v3.6.6:4cf1f54eb7, Jun 27 2018, 03:37:03) [MSC v.1900 64 bit (AMD64)] on win32
+Type "copyright", "credits" or "license()" for more information.
+>>> import nltk
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.corpus import stopwords
+from nltk.probability import FreqDist
+from heapq import nlargest
+
+# Download required NLTK data
+nltk.download('punkt')
+nltk.download('stopwords')
+
+# Your text
+text = """Where do these failures come from? One of possible explanations lies in the concept of groupthink: if crucial decisions are taken in a small group, most likely they would be sub-optimal, since alternative information would be filtered out, and dissent within a small group is unlikely. In other words, team-based coherence prevails over plurality of opinions, especially when it comes to politically stressful situations. According to the groupthink explanation, desire to minimize controversies compromises quality of discussion and decisions, since important information might be ignored or misinterpreted, and alternatives to the preferred course of actions might be not taken seriously. The decision-making group might tend to persist in the original policy shaped by self-appointed “mindguards”; to preserve the clubby atmosphere, group members tend to suppress personal doubts, silence dissenters, and follow the group leader. Group cohesion is likely to lead to defective decisions, limited review of alternatives, objectives, and risks, selective use of information and ultimately to paralysis in decision making. Apparently, in authoritarian systems with homogenous, uniform, monolithic worldview of group members this scenario seems to be more likely than in democracies where plurality of opinions, views, and perceptions of group members have more chances for success."""
+
+# Tokenize text into sentences
+sentences = sent_tokenize(text)
+
+# Tokenize words and remove stopwords
+words = word_tokenize(text)
+stopwords = set(stopwords.words("english"))
+filtered_words = [word for word in words if word not in stopwords and word.isalpha()]
+
+# Frequency distribution of words
+freq = FreqDist(filtered_words)
+
+# Scoring sentences based on frequency of words
+sentence_scores = {}
+for sentence in sentences:
+    word_count_in_sentence = (word for word in word_tokenize(sentence) if word in freq)
+    for word in word_count_in_sentence:
+        if sentence not in sentence_scores:
+            sentence_scores[sentence] = freq[word]
+        else:
+            sentence_scores[sentence] += freq[word]
+
+# Get the summary (top N sentences)
+summary_length = int(len(sentences) * 0.3)  # Summarize to 30% of the original text
+summary = nlargest(summary_length, sentence_scores, key=sentence_scores.get)
+
+print(' '.join(summary))
+
+# summarized text The failures in decision-making are often attributed to "groupthink," which occurs when crucial decisions are made within small groups. In such scenarios, optimal decisions are less likely as alternative information is filtered out, and dissent is discouraged. Team cohesion tends to prevail over diverse opinions, especially in politically charged situations. Groupthink results in a desire to avoid controversy, compromising the quality of discussions and decisions, leading to the neglect of important information and alternative courses of action. Decision-making groups may persist with their original policies, suppressing doubts, silencing dissenters, and blindly following the group leader. This cohesion leads to defective decisions, limited exploration of alternatives, objectives, and risks, selective information use, and ultimately decision-making paralysis. Authoritarian systems with a uniform worldview among group members are more susceptible to groupthink, while democracies with diverse perspectives have a better chance of success.
